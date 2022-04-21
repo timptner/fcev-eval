@@ -10,6 +10,7 @@ def plot_data(simulation, signal: str) -> None:
     ax.plot(simulation['time'][:], simulation['data'][signal][:])
     ax.set_xlabel('Zeit [s]')
     ax.set_ylabel(signals[signal])
+    ax.set_title(simulation.attrs['Name'])
 
 
 def plot_signal(simulation, show_plot=True) -> None:
