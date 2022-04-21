@@ -105,10 +105,11 @@ def write_time_data_to_hdf5(name: str, key: str):
 def main() -> None:
     """Main entry-point for script"""
     signals = (DATA_DIR / 'Var_List.txt').read_text().splitlines()
-    key = write_signal_data_to_hdf5(FILES[0], signals)
-    write_time_data_to_hdf5(FILES[1], key)
     key = write_signal_data_to_hdf5(FILES[2], signals)
     write_time_data_to_hdf5(FILES[3], key)
+    signals.pop(8)  # remove 'omega' for battery
+    key = write_signal_data_to_hdf5(FILES[0], signals)
+    write_time_data_to_hdf5(FILES[1], key)
 
 
 if __name__ == '__main__':
