@@ -22,7 +22,8 @@ def main() -> None:
     ]
     func = select_func_interactively(options)
     with h5py.File(DATA_DIR / 'simulation.hdf5', 'r+') as file:
-        group = select_item_interactively(list(file.keys()), question="Which simulation do you want to evaluate?")
+        sim_list = [(key, value.attrs['Name']) for key, value in file.items()]
+        group = select_item_interactively(sim_list, question="Which simulation do you want to evaluate?")
         simulation = file[group]
         func(simulation)
 

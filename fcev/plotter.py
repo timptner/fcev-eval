@@ -15,7 +15,7 @@ def plot_data(simulation, signal: str) -> None:
 def plot_signal(simulation, show_plot=True) -> None:
     """Select a signal by number and plot it over time"""
     signals = get_signal_names(simulation)
-    signal_list = [f"{key}|{value}" for key, value in signals.items()]
+    signal_list = [(key, value) for key, value in signals.items()]
     signal = select_item_interactively(signal_list, question="Which signal do you want to plot?")
     plot_data(simulation, signal.split('|')[0])
     if show_plot:

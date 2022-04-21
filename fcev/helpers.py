@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Union
 
 
 def ask_user_for_number(max_int: int) -> int:
@@ -16,15 +16,23 @@ def ask_user_for_number(max_int: int) -> int:
         return index
 
 
-def select_item_interactively(items: list[str], question: str) -> str:
-    """Select a list item via user input"""
+def select_item_interactively(items: Union[list[str], list[tuple[str, str]]], question: str) -> str:
+    """Select an item via user input"""
     print(question)
     print("Please select an item from the following list.")
     digits = len(str(len(items)))
     for index in range(len(items)):
-        print(f" [{str(index).zfill(digits)}] {items[index]}")
-    index = ask_user_for_number(len(items) - 1)
-    value = items[index]
+        item = items[index]
+        if isinstance(item, tuple):
+            key, value = item
+            print(f" [{str(index).zfill(digits)}] {key} ({value})")
+        else:
+            print(f" [{str(index).zfill(digits)}] {item}")
+    number = ask_user_for_number(len(items) - 1)
+    if isinstance(item, tuple):
+        value = items[number][0]
+    else:
+        value = items[number]
     return value
 
 
