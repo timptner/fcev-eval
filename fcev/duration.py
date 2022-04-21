@@ -97,7 +97,7 @@ def store(simulation, signal: str, durations: Durations) -> None:
         index += 1
 
 
-def calculate(file) -> None:
+def calculate(simulation) -> None:
     """Main entry-point for script"""
     options = [
         ("Strategie", group_strategy),
@@ -108,8 +108,6 @@ def calculate(file) -> None:
     index = option_list.index(signal)
     func = options[index][1]
 
-    group = select_item_interactively(list(file.keys()), question="Which simulation do you want to evaluate?")
-    simulation = file[group]
     data = get_item_by_attribute(simulation['data'].values(), 'Name', signal)
     result = create_grouped_index_list(data, func)
     time = simulation['time'][:]

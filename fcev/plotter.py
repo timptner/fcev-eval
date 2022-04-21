@@ -12,10 +12,8 @@ def plot_data(simulation, signal: str) -> None:
     ax.set_ylabel(signals[signal])
 
 
-def plot_signal(file, show_plot=True) -> None:
+def plot_signal(simulation, show_plot=True) -> None:
     """Select a signal by number and plot it over time"""
-    group = select_item_interactively(list(file.keys()), question="Which simulation do you want to evaluate?")
-    simulation = file[group]
     signals = get_signal_names(simulation)
     signal_list = [f"{key}|{value}" for key, value in signals.items()]
     signal = select_item_interactively(signal_list, question="Which signal do you want to plot?")
