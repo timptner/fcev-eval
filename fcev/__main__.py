@@ -20,7 +20,7 @@ def main() -> None:
         ("Plot signal over time", plot_signal)
     ]
     func = select_func_interactively(options)
-    with h5py.File(DATA_DIR / 'simulation.hdf5') as file:
+    with h5py.File(DATA_DIR / 'simulation.hdf5', 'r+') as file:
         func(file)
 
 

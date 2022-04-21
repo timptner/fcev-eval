@@ -1,5 +1,6 @@
 import numpy as np
 
+from datetime import datetime
 from typing import Callable
 
 from .helpers import select_item_interactively
@@ -73,6 +74,29 @@ def group_loading(value: float) -> str:
     return response
 
 
+def store(simulation, signal: str, durations: Durations) -> None:
+    """Save data into hdf5-file"""
+    if 'calculated' not in simulation.keys():
+        simulation.create_group('calculated')
+    group = simulation['calculated']
+    duration_list = [key for key in group.keys() if key.startswith('duration_')]
+    if duration_list:
+        last_duration = max(duration_list)
+        index = int(last_duration.split('_')[-1]) + 1
+        name = f'duration_{index:02d}'
+    else:
+        name = f'duration_{1:02d}'
+    subgroup = group.create_group(name)
+    subgroup.attrs.create('Signal', signal)
+    subgroup.attrs.create('Timestamp UTC', str(datetime.utcnow()))
+    index = 1
+    for key, value in durations.items():
+        ds = subgroup.create_dataset(f'set_{index:02d}', data=[value])
+        ds.attrs.create('Name', key)
+        ds.attrs.create('Unit', 's')
+        index += 1
+
+
 def calculate(file) -> None:
     """Main entry-point for script"""
     options = [
@@ -90,6 +114,7 @@ def calculate(file) -> None:
     result = create_grouped_index_list(data, func)
     time = simulation['time'][:]
     durations = calculate_durations(result, time)
+    store(simulation, signal, durations)
     for key, value in durations.items():
         print(f'{key}: {value}s')
     print(f"Total: {round(sum(durations.values()), 3)}")
