@@ -28,10 +28,22 @@ def select_item_interactively(items: list[str], question: str) -> str:
     return value
 
 
-def select_func_interactively(options: list[tuple[str, callable]]) -> callable:
+def select_func_interactively(options: list[tuple[str, Callable]]) -> Callable:
     """Select a callable from list of tuples via user input"""
     option_list = [option[0] for option in options]
     option = select_item_interactively(option_list, question="Which program do you want to execute?")
     index = option_list.index(option)
     name, func = options[index]
     return func
+
+
+def get_signal_names(simulation, show_units=False) -> dict:
+    """Return a list of available signals and their reference names"""
+    signals = []
+    for key, value in simulation['data'].items():
+        if show_units:
+            item = (key, f"{value.attrs['Name']} [{value.attrs['Unit']}]")
+        else:
+            item = (key, value.attrs['Name'])
+        signals.append(item)
+    return dict(signals)

@@ -2,20 +2,26 @@
 
 from pathlib import Path
 
-from .calculate_duration import main as calc_dur, plot_signal
+import h5py
+
+from .duration import calculate as calc_duration
+from .plotter import plot_signal
 from .helpers import select_func_interactively
 
-PROJECT_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+DATA_DIR = BASE_DIR / 'data'
 
 
 def main() -> None:
     """Main entry-point for script"""
     options = [
-        ("Calculate duration of a signal", calc_dur),
+        ("Calculate duration of a signal", calc_duration),
         ("Plot signal over time", plot_signal)
     ]
     func = select_func_interactively(options)
-    func()
+    with h5py.File(DATA_DIR / 'simulation.hdf5') as file:
+        func(file)
 
 
 if __name__ == '__main__':
