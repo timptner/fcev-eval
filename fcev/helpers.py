@@ -47,3 +47,11 @@ def get_signal_names(simulation, show_units=False) -> dict:
             item = (key, value.attrs['Name'])
         signals.append(item)
     return dict(signals)
+
+
+def delete_calculations(simulation) -> None:
+    """Delete group from simulation data"""
+    if 'calculated' not in simulation.keys():
+        print("No calculations in this simulation found. Abort!")
+        return
+    del simulation['calculated']
