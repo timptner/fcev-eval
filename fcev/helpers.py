@@ -71,3 +71,8 @@ def delete_calculations(simulation) -> None:
         print("No calculations in this simulation found. Abort!")
         return
     del simulation['calculated']
+
+
+def mm2inch(value: Union[int, float]) -> float:
+    """Return inches from millimeters round by 2 digits"""
+    return round(value / 25.4, 2)
