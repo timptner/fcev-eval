@@ -5,7 +5,7 @@ from pathlib import Path
 import h5py
 
 from .duration import calculate as calc_duration
-from .plotter import plot_signal
+from .plotter import plot_signal, plot_duration
 from .helpers import select_func_interactively, select_item_interactively, delete_calculations
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,9 +16,10 @@ DATA_DIR = BASE_DIR / 'data'
 def main() -> None:
     """Main entry-point for script"""
     options = [
-        ("Calculate duration of a signal", calc_duration),
         ("Plot signal over time", plot_signal),
-        ("Delete calculations", delete_calculations)
+        ("Calculate duration of a signal", calc_duration),
+        ("Plot duration as pie chart", plot_duration),
+        ("Delete calculations", delete_calculations),
     ]
     func = select_func_interactively(options)
     with h5py.File(DATA_DIR / 'simulation.hdf5', 'r+') as file:
