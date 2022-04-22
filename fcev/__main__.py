@@ -6,7 +6,7 @@ import h5py
 
 from .duration import calculate as calc_duration
 from .plotter import plot_signal, plot_duration
-from .helpers import select_func_interactively, select_item_interactively, delete_calculations
+from .helpers import select_func_interactively, select_item_interactively, delete_calculations, ask_user_for_number
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

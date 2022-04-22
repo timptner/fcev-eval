@@ -1,3 +1,5 @@
+import numpy as np
+
 from typing import Callable, Union
 
 
@@ -45,16 +47,22 @@ def select_func_interactively(options: list[tuple[str, Callable]]) -> Callable:
     return func
 
 
-def get_signal_names(simulation, show_units=False) -> dict:
+def get_signal_names(simulation, with_units=False) -> dict[str, Union[str, tuple[str, str]]]:
     """Return a list of available signals and their reference names"""
-    signals = []
+    signals = {}
     for key, value in simulation['data'].items():
-        if show_units:
-            item = (key, f"{value.attrs['Name']} [{value.attrs['Unit']}]")
+        if key in signals.keys():
+            raise KeyError("Duplicated signal found!")
+        if with_units:
+            signals[key] = (value.attrs['Name'], value.attrs['Unit'])
         else:
-            item = (key, value.attrs['Name'])
-        signals.append(item)
-    return dict(signals)
+            signals[key] = value.attrs['Name']
+    return signals
+
+
+def get_index_from_value(data: np.ndarray, value: int) -> int:
+    """Return index of the closest existing value from list"""
+    return np.abs(data - value).argmin()
 
 
 def delete_calculations(simulation) -> None:

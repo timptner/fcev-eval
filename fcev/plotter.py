@@ -1,25 +1,29 @@
 import matplotlib.pyplot as plt
-import numpy as np
 
-from .helpers import select_item_interactively, get_signal_names
-
-
-def plot_data(simulation, signal: str) -> None:
-    """Create new plot to show data"""
-    signals = get_signal_names(simulation, show_units=True)
-    fig, ax = plt.subplots()
-    ax.plot(simulation['time'][:], simulation['data'][signal][:])
-    ax.set_xlabel('Zeit [s]')
-    ax.set_ylabel(signals[signal])
-    ax.set_title(simulation.attrs['Name'])
+from .helpers import select_item_interactively, get_signal_names, get_index_from_value, ask_user_for_number
 
 
 def plot_signal(simulation, show_plot=True) -> None:
     """Select a signal by number and plot it over time"""
-    signals = get_signal_names(simulation)
-    signal_list = [(key, value) for key, value in signals.items()]
+    signals = get_signal_names(simulation, with_units=True)
+    signal_list = [(key, value[0]) for key, value in signals.items()]
     signal = select_item_interactively(signal_list, question="Which signal do you want to plot?")
-    plot_data(simulation, signal.split('|')[0])
+
+    max_limit = int(simulation['time'][:].max())
+    print("Please provide the lower limit you want the plot.")
+    lower_limit = ask_user_for_number(max_limit)
+    print("Please provide the range you want to plot.")
+    upper_limit = lower_limit + ask_user_for_number(max_limit - lower_limit)
+    lower_limit_index = get_index_from_value(simulation['time'][:], lower_limit)
+    upper_limit_index = get_index_from_value(simulation['time'][:], upper_limit)
+
+    fig, ax = plt.subplots()
+    ax.plot(simulation['time'][lower_limit_index:upper_limit_index],
+            simulation['data'][signal][lower_limit_index:upper_limit_index])
+    ax.set_xlabel("Zeit [s]")
+    ax.set_ylabel(f"{signals[signal][0]} [{signals[signal][1]}]")
+    ax.set_title(simulation.attrs['Name'])
+    ax.grid()
     if show_plot:
         plt.show()
 
