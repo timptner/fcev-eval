@@ -1,50 +1,69 @@
 import numpy as np
+import typer
 
-from typing import Callable, Union
+from pathlib import Path
+from typing import Union, Any
 
 
-def ask_user_for_number(max_int: int) -> int:
-    print("Choose a number:")
+def ask_user_for_number(limit: int, prompt: str = None) -> int:
+    """Prompt for a number and validate the response"""
     while True:
-        response = input("> ")
+        response = typer.prompt(prompt or "Select a number")
         try:
             index = int(response)
         except ValueError:
-            print("Not a number. Try again!")
+            typer.secho(f"Not a number. Try again!", fg=typer.colors.RED)
             continue
-        if index not in range(max_int + 1):
-            print(f"Only numbers between 0 and {max_int} are valid. Try again!")
+        if index not in range(limit + 1):
+            typer.secho(f"Number must be between 0 and {limit}. Try again!", fg=typer.colors.RED)
             continue
         return index
 
 
-def select_item_interactively(items: Union[list[str], list[tuple[str, str]]], question: str) -> str:
+def select_item_interactively(items: Union[list[str], list[tuple[str, str]]], prompt: str) -> Any:
     """Select an item via user input"""
-    print(question)
-    print("Please select an item from the following list.")
+    message = typer.style(f"--- {prompt} ---", fg=typer.colors.BLUE, bold=True)
+    typer.echo(message)
+
     digits = len(str(len(items)))
     for index in range(len(items)):
         item = items[index]
+        msg_index = typer.style(f" {str(index).zfill(digits)} ", bg=typer.colors.BLUE)
         if isinstance(item, tuple):
-            key, value = item
-            print(f" [{str(index).zfill(digits)}] {key} ({value})")
+            typer.echo(f"{msg_index} {item[1]}")
         else:
-            print(f" [{str(index).zfill(digits)}] {item}")
+            typer.echo(f"{msg_index} {item}")
+
     number = ask_user_for_number(len(items) - 1)
-    if isinstance(item, tuple):
+    if isinstance(items[number], tuple):
         value = items[number][0]
     else:
         value = items[number]
     return value
 
 
-def select_func_interactively(options: list[tuple[str, Callable]]) -> Callable:
-    """Select a callable from list of tuples via user input"""
-    option_list = [option[0] for option in options]
-    option = select_item_interactively(option_list, question="Which program do you want to execute?")
-    index = option_list.index(option)
-    name, func = options[index]
-    return func
+def get_unique_image_name(path: Path, name: str) -> Path:
+    """Return valid path with unique filename"""
+    if not path.exists():
+        path.mkdir()
+        typer.echo("Images directory created!")
+
+    images = [file.stem for file in path.iterdir() if file.suffix == '.png']
+    numbers = [int(image.removesuffix('.png').removeprefix(name)) for image in images if image.startswith(name)]
+    if numbers:
+        number = max(numbers) + 1
+    else:
+        number = 1
+
+    file_path = path / f'{name}{number:03d}.png'
+    if file_path.exists():
+        raise FileExistsError("File already exists. Please execute again to generate new unique name.")
+    return file_path
+
+
+def get_key_by_attribute(group: dict, key: str, value: str) -> list[str]:
+    """Query group items by attribute and return result"""
+    return [key_ for key_, value_ in group.items() if value_.attrs[key] == value]
 
 
 def get_signal_names(simulation, with_units=False) -> dict[str, Union[str, tuple[str, str]]]:
@@ -63,14 +82,6 @@ def get_signal_names(simulation, with_units=False) -> dict[str, Union[str, tuple
 def get_index_from_value(data: np.ndarray, value: int) -> int:
     """Return index of the closest existing value from list"""
     return np.abs(data - value).argmin()
-
-
-def delete_calculations(simulation) -> None:
-    """Delete group from simulation data"""
-    if 'calculated' not in simulation.keys():
-        print("No calculations in this simulation found. Abort!")
-        return
-    del simulation['calculated']
 
 
 def mm2inch(value: Union[int, float]) -> float:
