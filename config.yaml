@@ -1,0 +1,49 @@
+storage_file: ./data/simulation.hdf5
+plots:
+  dpi: 300
+  durations:
+    figsize:
+      width: 150
+      height: 80
+    WLTP_SC_SOC50:
+      elektr. Gesamtleistung:
+        order:
+          - Charge increasing
+          - Charge depleting
+          - Charge sustaining
+        explode:
+          - 0
+          - 0
+          - 0
+      Strategie:
+        order:
+          - RegBrakeFuCeOn
+          - LoadShift
+          - FuCeDrive
+        explode:
+          - 0
+          - 0
+          - 0
+    WLTP_BAT_SOC50:
+      elektr. Gesamtleistung:
+        order:
+          - Charge increasing
+          - Charge depleting
+          - Charge sustaining
+        explode:
+          - 0
+          - 0
+          - 0
+      Strategie:
+        order:
+          - RegBrakeFuCeOff
+          - ElecDrive
+          - RegBrakeFuCeOn
+          - LoadShift
+          - FuCeDrive
+        explode:
+          - 0
+          - 0
+          - 0.2
+          - 0.5
+          - 0.2

@@ -3,6 +3,7 @@ import os
 
 import h5py
 import typer
+import yaml
 
 from pathlib import Path
 
@@ -20,9 +21,18 @@ app.add_typer(simulations.app, name='simulations')
 
 @app.callback()
 def main(ctx: typer.Context):
-    file_path = DATA_DIR / 'simulation.hdf5'
+    config_file = BASE_DIR / 'config.yaml'
+    if not config_file.exists():
+        typer.secho("Config file not found.", fg=typer.colors.RED)
+        raise typer.Abort()
+
+    config = yaml.load(config_file.read_text(), yaml.Loader)
+    config['storage_file'] = Path(config['storage_file']).resolve()
+
+    ctx.obj = config
+    file_path = config['storage_file']
     try:
-        ctx.obj = h5py.File(file_path, 'a')
+        ctx.obj['file'] = h5py.File(file_path, 'a')
     except BlockingIOError:
         msg = typer.style("export HDF5_USE_FILE_LOCKING=FALSE", bg=typer.colors.CYAN)
         typer.echo(f"Run {msg} inside your console.")

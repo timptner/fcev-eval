@@ -114,7 +114,7 @@ def calculate(ctx: typer.Context) -> None:
     ]
     func_list, signal_list = zip(*options)
 
-    file: h5py.File = ctx.obj
+    file: h5py.File = ctx.obj['file']
 
     simulations = [(value, value.attrs['Name']) for value in file.values()]
     simulation: H5Group = select_item_interactively(simulations, prompt="Available simulations")
@@ -146,7 +146,7 @@ def calculate(ctx: typer.Context) -> None:
 @app.command()
 def delete(ctx: typer.Context) -> None:
     """Delete group from simulation data"""
-    file: h5py.File = ctx.obj
+    file: h5py.File = ctx.obj['file']
 
     simulations = [(value, value.attrs['Name']) for value in file.values()]
     simulation: H5Group = select_item_interactively(simulations, prompt="Available simulations")

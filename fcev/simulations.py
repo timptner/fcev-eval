@@ -11,7 +11,7 @@ app = typer.Typer()
 @app.command()
 def delete(ctx: typer.Context) -> None:
     """Delete simulation from hdf5 file"""
-    file: h5py.File = ctx.obj
+    file: h5py.File = ctx.obj['file']
 
     simulations = [(value, value.attrs['Name']) for value in file.values()]
     simulation: H5Group = select_item_interactively(simulations, prompt="Available simulations")

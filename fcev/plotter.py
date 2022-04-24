@@ -20,7 +20,7 @@ app = typer.Typer()
 @app.command('signal')
 def signal_over_time(ctx: typer.Context) -> None:
     """Select a signal by number and plot it over time"""
-    file: h5py.File = ctx.obj
+    file: h5py.File = ctx.obj['file']
 
     simulations = [(value, value.attrs['Name']) for value in file.values()]
     simulation: H5Group = select_item_interactively(simulations, prompt="Available simulations")
@@ -56,7 +56,8 @@ def signal_over_time(ctx: typer.Context) -> None:
 @app.command('duration')
 def duration_of_sets(ctx: typer.Context) -> None:
     """Plot a calculated duration as pie chart"""
-    file: h5py.File = ctx.obj
+    config = ctx.obj
+    file: h5py.File = config['file']
 
     simulations = [(value, value.attrs['Name']) for value in file.values()]
     simulation: H5Group = select_item_interactively(simulations, prompt="Available simulations")
