@@ -12,16 +12,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 IMAGE_DIR = BASE_DIR / 'images'
 
-FIG_SIZE = (mm2inch(160), mm2inch(100))
-DPI = 300
-
 app = typer.Typer()
 
 
 @app.command('signal')
 def signal_over_time(ctx: typer.Context) -> None:
     """Select a signal by number and plot it over time"""
-    file: h5py.File = ctx.obj['file']
+    config = ctx.obj
+    file: h5py.File = config['file']
 
     simulations = [(value, value.attrs['Name']) for value in file.values()]
     simulation: H5Group = select_item_interactively(simulations, prompt="Available simulations")
@@ -38,7 +36,12 @@ def signal_over_time(ctx: typer.Context) -> None:
     lower_limit_index = get_index_from_value(time, lower_limit)
     upper_limit_index = get_index_from_value(time, upper_limit)
 
-    fig, ax = plt.subplots(figsize=FIG_SIZE, dpi=DPI, constrained_layout=True)
+    config_plots = config['plots']
+    config_signals = config_plots['singals']
+    figure_size = config_signals['figsize']
+
+    fig, ax = plt.subplots(figsize=(mm2inch(figure_size['width']), mm2inch(figure_size['height'])),
+                           dpi=config_plots['dpi'], constrained_layout=True)
     ax.plot(time[lower_limit_index:upper_limit_index], signal[lower_limit_index:upper_limit_index])
     ax.set_xlabel("Zeit [s]")
     ax.set_ylabel(f"{signal.attrs['Name']} [{signal.attrs['Unit']}]")

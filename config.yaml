@@ -1,6 +1,10 @@
 storage_file: ./data/simulation.hdf5
 plots:
   dpi: 300
+  signals:
+    figsize:
+      width: 150
+      height: 100
   durations:
     figsize:
       width: 150
