@@ -1,5 +1,7 @@
 .idea/
-data/
-images/
 venv/
 __pycache__/
+.egg-info/
+
+data/
+figures/
