@@ -48,8 +48,8 @@ def create_index_list(data: np.ndarray, grouper: Callable[[float], str]) -> Grou
     """Create a list of durations for each group"""
     groups = {}
     last_index = 0  # Use 0 as a start index for the first duration
-    for index in range(len(data)):
-        group = grouper(data[index])
+    for index, value in enumerate(data):
+        group = grouper(value)
         if group not in groups.keys():
             # Add list to avoid AttributeError when key does not exist
             groups[group] = []

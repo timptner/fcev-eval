@@ -26,8 +26,7 @@ def select_item_interactively(items: Union[list[str], list[tuple[str, str]]], pr
     typer.echo(message)
 
     digits = len(str(len(items)))
-    for index in range(len(items)):
-        item = items[index]
+    for index, item in enumerate(items):
         msg_index = typer.style(f" {str(index).zfill(digits)} ", bg=typer.colors.BLUE)
         if isinstance(item, tuple):
             typer.echo(f"{msg_index} {item[1]}")
