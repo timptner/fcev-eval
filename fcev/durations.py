@@ -16,14 +16,19 @@ app = typer.Typer()
 def group_strategy(value: float) -> str:
     """Return group name decided from value"""
     groups = {
-        1: "RegBrakeFuCeOn",
+        1: "RegBrakeFuCeOff",
         2: "ElecDrive",
-        3: "RegBrakeFuCeOff",
+        3: "RegBrakeFuCeOn",
         4: "LoadShift",
         5: "Boost",
         6: "FuCeDrive",
     }
-    return groups[int(value)]
+    try:
+        group = groups[int(value)]
+    except KeyError:
+        typer.secho(f"Impossible value received: {value}", fg=typer.colors.RED)
+        raise typer.Abort()
+    return group
 
 
 def group_loading(value: float) -> str:
@@ -35,7 +40,7 @@ def group_loading(value: float) -> str:
     elif value == 0:
         response = "Charge sustaining"
     else:
-        typer.secho(f"Impossible value received: {value}")
+        typer.secho(f"Impossible value received: {value}", fg=typer.colors.RED)
         raise typer.Abort()
     return response
 
@@ -72,9 +77,9 @@ Durations = dict[str, int]
 def convert_index_to_duration(groups: Groups, time: np.ndarray) -> Durations:
     """Convert indexes into timestamps and calculate duration for each distance"""
     durations = {}
-    for key, duration in groups.items():
-        duration_list = [time[end] - time[start] for start, end in duration]
-        durations[key] = sum(duration_list)
+    for key, duration_list in groups.items():
+        duration = sum([time[end] - time[start] for start, end in duration_list])
+        durations[key] = duration
     return durations
 
 
@@ -97,12 +102,11 @@ def store(simulation, signal: str, durations: Durations) -> None:
     duration.attrs.create('Signal', signal)
     duration.attrs.create('Timestamp UTC', str(datetime.utcnow()))
 
-    index = 1
-    for key, value in durations.items():
+    for index, item in enumerate(durations.items(), start=1):
+        key, value = item
         ds = duration.create_dataset(f'group{index:02d}', data=[value])
         ds.attrs.create('Name', key)
         ds.attrs.create('Unit', 's')
-        index += 1
 
 
 @app.command()

@@ -1,5 +1,6 @@
 import h5py
 import matplotlib.pyplot as plt
+import numpy as np
 import typer
 
 from h5py._hl.group import Group as H5Group
@@ -54,7 +55,7 @@ def signal_over_time(ctx: typer.Context) -> None:
 
 
 @app.command('duration')
-def duration_of_sets(ctx: typer.Context) -> None:
+def duration_of_groups(ctx: typer.Context) -> None:
     """Plot a calculated duration as pie chart"""
     config = ctx.obj
     file: h5py.File = config['file']
@@ -67,22 +68,36 @@ def duration_of_sets(ctx: typer.Context) -> None:
         raise typer.Abort()
 
     calculations = simulation['calculated']
-    durations = [(value, value.attrs['Signal']) for key, value in calculations.items() if key.startswith('duration_')]
+    durations = [(value, value.attrs['Signal']) for key, value in calculations.items() if key.startswith('duration')]
     if not durations:
         typer.secho("Simulation does not have any durations calculated.", fg=typer.colors.RED)
         raise typer.Abort()
 
     duration = select_item_interactively(durations, prompt="Available durations")
-    sets = [(value.attrs['Name'], value[0]) for key, value in duration.items()]
-    labels, data = zip(*sets)
+    groups = [(value.attrs['Name'], value[0]) for key, value in duration.items()]
 
-    fig, ax = plt.subplots(figsize=FIG_SIZE, dpi=DPI, constrained_layout=True)
-    ax.pie(data, autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "white"})
-    ax.set_title(f"{simulation.attrs['Name']}: {duration.attrs['Signal']}")
+    config_plots = config['plots']
+    config_duration = config_plots['durations']
+    config_signal = config_duration[simulation.attrs['Name']][duration.attrs['Signal']]
+
+    labels, data = zip(*groups)
+    order = config_signal['order']
+    if len(labels) != len(order):
+        raise ValueError("Group count does not match order count. Fix DISPLAY_ORDER")
+    if set(labels) != set(order):
+        raise ValueError("Group labels do not match order labels. Fix DISPLAY_ORDER")
+    labels, data = zip(*[groups[labels.index(key)] for key in order])
+
+    figure_size = config_duration['figsize']
+    fig, ax = plt.subplots(figsize=(mm2inch(figure_size['width']), mm2inch(figure_size['height'])),
+                           dpi=config_plots['dpi'], layout='constrained', subplot_kw={'aspect': 'equal'})
+    wedges, texts, autotexts = ax.pie(data, autopct='%1.1f%%', pctdistance=0.75, explode=config_signal['explode'],
+                                      wedgeprops={'width': 0.5, 'linewidth': 0.7, 'edgecolor': 'white'})
     ax.legend(labels, loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
 
     file_path = get_unique_image_name(IMAGE_DIR, 'duration')
     fig.savefig(file_path)
+
     msg = typer.style(file_path.stem, fg=typer.colors.CYAN)
     typer.echo(f"Plot saved as {msg}!")
 
