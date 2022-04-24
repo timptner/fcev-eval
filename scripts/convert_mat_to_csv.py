@@ -24,15 +24,15 @@ SIGNAL_NAMES = RAW_DATA_DIR / 'Var_List.txt'
 
 def store_as_csv(raw_data: np.ndarray, raw_time: np.ndarray, signal_names: list[str], filename: str) -> None:
     """Combine data and time arrays and store as .csv-file"""
-    data = pd.DataFrame(raw_data, columns=signal_names)
-    time = pd.Series(raw_time.transpose()[0])
-    data['Zeit [s]'] = time
-    data.set_index('Zeit [s]', inplace=True)
+    df = pd.DataFrame(raw_data, columns=signal_names)
+    s = pd.Series(raw_time.transpose()[0])
+    df['Zeit [s]'] = s
+    df = df.reindex(columns=[df.columns[-1], *df.columns[:-1]])
 
     file = DATA_DIR / 'cleaned' / f'{filename}.csv'
     if file.exists():
         raise FileExistsError(f"Please delete '{file.name}' before running this script.")
-    data.to_csv(file)
+    df.to_csv(file, index=False)
     print(f"Created new file '{file.name}'.")
 
 
