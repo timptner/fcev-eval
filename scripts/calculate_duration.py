@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from fcev.__main__ import DATA_DIR
+from typing import Callable
 
 PROCESSED_DATA = DATA_DIR / 'processed'
 
@@ -24,67 +25,99 @@ SIMULATIONS = [
 def select_strategy(value: float) -> str:
     """Return the strategy for the provided value"""
     if value == 1.0:
-        return 'RegBrakeFuCeOff'
+        return "RegBrakeFuCeOff"
     elif value == 2.0:
-        return 'ElecDrive'
+        return "ElecDrive"
     elif value == 3.0:
-        return 'RegBrakeFuCeOn'
+        return "RegBrakeFuCeOn"
     elif value == 4.0:
-        return 'LoadShift'
+        return "LoadShift"
     elif value == 5.0:
-        return 'Boost'
+        return "Boost"
     elif value == 6.0:
-        return 'FuCeDrive'
+        return "FuCeDrive"
     else:
         raise ValueError("Unknown strategy")
 
 
-def calculate_duration_of_strategies(df: pd.DataFrame, stop: int) -> pd.Series:
-    """Iterate over dataset to recognize periods of constant strategy and calculate total duration of those groups"""
+def select_charging(value: float) -> str:
+    """Return the charging behaviour for the provided value"""
+    if value == 0:
+        return "Charge sustaining"
+    elif value > 0:
+        return "Charge increasing"
+    elif value < 0:
+        return "Charge depleting"
+    else:
+        raise ValueError("Unknown charging behaviour")
+
+
+SelectFunc = Callable[[float], str]
+
+
+def calculate_duration(df: pd.DataFrame, column: str, groups: list[str],
+                       select_func: SelectFunc, stop: int) -> pd.Series:
+    """Iterate over dataset to recognize periods of consistent behaviour and calculate total duration of those groups"""
     if not stop < df['Zeit [s]'].max():
         raise ValueError("Stop-Attribute must be smaller than simulation time")
 
-    strategies = ['RegBrakeFuCeOff', 'ElecDrive', 'RegBrakeFuCeOn', 'LoadShift', 'Boost', 'FuCeDrive']
-    s = pd.Series(data=np.zeros(len(strategies)), index=strategies)
+    s = pd.Series(data=np.zeros(len(groups)), index=groups)
 
     last_index = 0
     for index, data in df.iterrows():
-        strategy = select_strategy(data['Strategy'])
+        group = select_func(data[column])
 
         if data['Zeit [s]'] > stop:
             # last iteration: leave iteration early to avoid IndexError
             duration = df['Zeit [s]'][index - 1] - df['Zeit [s]'][last_index]
-            s[strategy] += duration  # add last period
+            s[group] += duration  # add last period
             break
 
-        if data['Strategy'] != df['Strategy'][index + 1]:
+        if data[column] != df[column][index + 1]:
             duration = data['Zeit [s]'] - df['Zeit [s]'][last_index]
-            s[strategy] += duration
+            s[group] += duration
             last_index = index
 
     return s
 
 
-def store_strategy_durations(df: pd.DataFrame) -> None:
-    """Store strategy durations for each simulation into single .csv-file"""
-    file = PROCESSED_DATA / 'durations_strategy.csv'
+def store_durations(durations: list[pd.Series], name: str) -> None:
+    """Store durations for each simulation into single .csv-file"""
+    df = pd.concat(durations, axis=1).transpose()
+    df = df.reindex(columns=['Simulation', *df.columns.drop('Simulation')])
+
+    file = PROCESSED_DATA / f'durations_{name}.csv'
     df.to_csv(file, index=False)
     print(f"Saved durations to file: {file.name}")
 
 
 def main() -> None:
     """Main entry-point for script"""
-    durations_list = []
+    strategy_durations = []
+    charging_durations = []
+
     for simulation, duration in SIMULATIONS:
         df_data = pd.read_csv(DATA_DIR / 'raw' / f'{simulation}.csv')
-        s = calculate_duration_of_strategies(df_data, stop=duration)
-        s['Simulation'] = simulation
-        durations_list.append(s)
-        print(f"Calculated new duration: {simulation}")
 
-    df = pd.concat(durations_list, axis=1).transpose()
-    df = df.reindex(columns=['Simulation', *df.columns.drop('Simulation')])  # Set simulations column as first column
-    store_strategy_durations(df)
+        # Strategies
+        groups = ['RegBrakeFuCeOff', 'ElecDrive', 'RegBrakeFuCeOn', 'LoadShift', 'Boost', 'FuCeDrive']
+        s_strategy = calculate_duration(df_data, column='Strategy', groups=groups,
+                                        select_func=select_strategy, stop=duration)
+        s_strategy['Simulation'] = simulation
+        strategy_durations.append(s_strategy)
+        print(f"Calculated new strategy durations: {simulation}")
+
+        # Charging
+        groups = ['Charge increasing', 'Charge depleting', 'Charge sustaining']
+        s_charging = calculate_duration(df_data, column='Pel [W]', groups=groups,
+                                        select_func=select_charging, stop=duration)
+        s_charging['Simulation'] = simulation
+        charging_durations.append(s_charging)
+        print(f"Calculated new charging durations: {simulation}")
+
+    store_durations(strategy_durations, 'strategy')
+    store_durations(charging_durations, 'charging')
+
     print("Done!")
 
 
