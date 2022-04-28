@@ -47,7 +47,10 @@ def main() -> None:
 
             filename = f'{index}_{item}.png'
             fig.savefig(IMAGE_DIR / filename)
+
             print(f"Figure saved: {filename}")
+
+            plt.close(fig)  # Release memory
 
     print("Done!")
 

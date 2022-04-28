@@ -55,6 +55,8 @@ def main() -> None:
 
         print(f"Created new figure: {simulation}")
 
+        plt.close(fig)  # Release memory
+
     print("Done!")
 
 

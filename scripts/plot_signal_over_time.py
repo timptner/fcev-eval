@@ -29,6 +29,10 @@ SIGNALS = [
     ('Strategy', "Strategie"),
     ('v [m/s]', "Geschwindigkeit Fahrzeug"),
     ('vSet [m/s]', "Geschwindigkeit Fahrzyklus"),
+    # ('PHVmax [W]', "Maximal abrufbare Leistung"),
+    # ('Pel [W]', "Elektrische Leistung"),
+    # ('U [V]', "Spannung"),
+    # ('I [A]', "Strom"),
 ]
 
 Signal = tuple[str, Optional[str]]
@@ -69,6 +73,8 @@ def main() -> None:
             fig.savefig(IMAGE_DIR / f'{filename}.png')
 
             print(f"Saved a new figure: {filename}")
+
+            plt.close(fig)  # Release memory
 
     print("Done!")
 
